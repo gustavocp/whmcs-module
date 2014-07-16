@@ -51,12 +51,15 @@ function gerencianet_link($params) {
 							 );
 	$data['cliente'] = array('nome' => $fullname,
 							 'email' => $email, 
-							 'celular' => $phone,
-							 'bairro' => $address2,
-							 'estado' => $state,
-							 'cidade' => $city,
-							 'cep' => $postcode 
+							 'celular' => $phone
 							 );
+
+	if($request_address == 's') {
+		$data['cliente']['bairro'] = $address2;
+		$data['cliente']['estado'] = $state;
+		$data['cliente']['cidade'] = $city;
+		$data['cliente']['cep'] = $postcode;
+	}
 	$json = json_encode($data);
 
 	$postfields = array('token' => $gatewaytoken, 'dados' => $json);
