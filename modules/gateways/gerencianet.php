@@ -15,7 +15,7 @@ function gerencianet_config() {
 function gerencianet_link($params) {
 
 	#Return if is not in complete screen. This is to prevent duplicate ws requests
-	if($_GET['a'] != 'complete') return;
+	if($_GET['a'] == 'checkout') return;
 
 	# Gateway Specific Variables
 	$gatewaytoken = $params['token'];
