@@ -8,7 +8,7 @@ include("../../../includes/functions.php");
 include("../../../includes/gatewayfunctions.php");
 include("../../../includes/invoicefunctions.php");
 
-$gatewaymodule = "gerencianet"; 
+$gatewaymodule = "gerencianet";
 
 $GATEWAY = getGatewayVariables($gatewaymodule);
 if (!$GATEWAY["type"]) die("Module Not Activated");
@@ -34,7 +34,7 @@ if ($request == 2) {
 	$status = $decoded_response->resposta->status;
 
 	$isInvoice = checkCbInvoiceID($invoiceid,$GATEWAY["name"]);
-	
+
 	if($isInvoice) {
 		# Update WHMCS' status based on changes in invoice
 		if($status == 'pago'){

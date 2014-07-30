@@ -14,8 +14,7 @@ Instalação
 3. Vá no painel administrativo do seu whmcs e acesse "Setup->Payments->Payment Gateways".
 4. Procure pelo módulo da Gerencianet e ative-o.
 5. No formulário de configuração do módulo da Gerencianet cadastre o token de sua conta.
-6. Este mesmo formulário possui mais duas opções: "Solicitar Endereço de Entrega" caso você deseje que a Gerencianet colete o endereço de entrega de seu cliente e
- "Módulo de teste" caso você deseje utilizar a url de teste de integração da Gerencianet.
+6. Este mesmo formulário possui a opção "Módulo de teste" caso você deseje utilizar a url de teste de integração da Gerencianet.
 7. Clique em salvar.
 
 

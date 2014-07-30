@@ -6,7 +6,6 @@ function gerencianet_config() {
     $configarray = array(
      "FriendlyName" => array("Type" => "System", "Value"=>"Gerencianet"),
      "token" => array("FriendlyName" => "Token", "Type" => "text", "Size" => "60", ),
-     "request_address" => array("FriendlyName" => "Solicitar Endereço de Entrega", "Type" => "yesno", "Description" => "Marque esta opção para solicitar endereço de entrega na tela de pagamento da Gerencianet"), 
      "testmode" => array("FriendlyName" => "Módulo de teste", "Type" => "yesno", "Description" => "Marque esta opção para usar os webservices de teste da Gerencianet"),
     );
 	return $configarray;
@@ -24,17 +23,13 @@ function gerencianet_link($params) {
 	# Invoice Variables
 	$invoiceid = (string)$params['invoiceid'];
 	$description = $params["description"];
-    $amount = (int)($params['amount'] * 100);
+    // $amount = (int)($params['amount'] * 100);
 	# Client Variables
 	$fullname = $params['clientdetails']['fullname'];
 	$email = $params['clientdetails']['email'];
-	$address2 = $params['clientdetails']['address2'];
-	$city = $params['clientdetails']['city'];
-	$state = $params['clientdetails']['state'];
-	$postcode = $params['clientdetails']['postcode'];
 	$phone = $params['clientdetails']['phonenumber'];
 
-	$request_address = ($params['request_address'])? "s": "n";
+	$request_address = "n";
 
 	# System Variables
 	$returnurl = $params['returnurl'];
@@ -42,24 +37,37 @@ function gerencianet_link($params) {
 	# Data to submit to gerencianet
 	$data = array();
 	$data['itens'] = array();
-	$data['itens'][] = array('itemValor' => $amount, 'itemDescricao' => $description);
+	// $data['itens'][] = array('itemValor' => $amount, 'itemDescricao' => $description);
+
+	//data - itens
+	$table = "tblinvoiceitems";
+	$fields = "description,amount";
+	$where = array(
+		"invoiceid"=> $invoiceid,
+	);
+	$sort = "id";
+	$sortorder = "ASC";
+	$limits = "";
+	$result = select_query($table,$fields,$where,$sort,$sortorder,$limits);
+
+	while ($service = mysql_fetch_array($result)) {
+		$item = array('itemDescricao' => $service['description'],
+						'itemValor' => (int)($service['amount'] * 100),
+						'itemQuantidade' => 1);
+		$data['itens'][] = $item;
+	}
+
 	$data['tipo'] = "servico";
 	$data['solicitarEndereco'] = $request_address;
-	$data['retorno'] = array('identificador' => $invoiceid, 
+	$data['retorno'] = array('identificador' => $invoiceid,
 							 'url' => $returnurl,
 							 'urlNotificacao' => $params['systemurl']."/modules/gateways/callback/gerencianet.php",
 							 );
 	$data['cliente'] = array('nome' => $fullname,
-							 'email' => $email, 
+							 'email' => $email,
 							 'celular' => $phone
 							 );
 
-	if($request_address == 's') {
-		$data['cliente']['bairro'] = $address2;
-		$data['cliente']['estado'] = $state;
-		$data['cliente']['cidade'] = $city;
-		$data['cliente']['cep'] = $postcode;
-	}
 	$json = json_encode($data);
 
 	$postfields = array('token' => $gatewaytoken, 'dados' => $json);
@@ -68,7 +76,7 @@ function gerencianet_link($params) {
 
 	# if test is selected then we will try it
 	if($gatewaytestmode) $url_complement = '/teste';
-	
+
 	$url = URL_GN . $url_complement . "/api/pagamento/json";
 	$options = array('CURLOPT_RETURNTRANSFER' => true, 'CURLOPT_MAXREDIRS' => 2, 'CURLOPT_AUTOREFERER' => true , 'CURLOPT_CONNECTTIMEOUT' => 30);
 	$response = curlCall($url, $postfields);
