@@ -7,6 +7,7 @@ function gerencianet_config() {
      "FriendlyName" => array("Type" => "System", "Value"=>"Gerencianet"),
      "token" => array("FriendlyName" => "Token", "Type" => "text", "Size" => "60", ),
      "testmode" => array("FriendlyName" => "Módulo de teste", "Type" => "yesno", "Description" => "Marque esta opção para usar os webservices de teste da Gerencianet"),
+     "messageCheckout" => array("FriendlyName" => "Message Checkout", "Type" => "textarea", "Size" => "100", ),
     );
 	return $configarray;
 }
@@ -23,13 +24,23 @@ function gerencianet_link($params) {
 	# Invoice Variables
 	$invoiceid = (string)$params['invoiceid'];
 	$description = $params["description"];
-    // $amount = (int)($params['amount'] * 100);
+	
 	# Client Variables
 	$fullname = $params['clientdetails']['fullname'];
 	$email = $params['clientdetails']['email'];
 	$phone = $params['clientdetails']['phonenumber'];
+	
+	# aditional fields (need to create two custom fields, CPF and Data Nascimento
+	$cpf = $params['clientdetails']['customfields1'];
+	$birthdayDate = $params['clientdetails']['customfields2'];
+	$cep = $params['clientdetails']['postcode'];
+	$logradouro = $params['clientdetails']['address1'];
+	preg_match( '/([0-9]{1,5})/i', $logradouro, $numero);
+	$bairro = $params['clientdetails']['address2'];
+	$cidade = $params['clientdetails']['city'];
+	$estado = $params['clientdetails']['state'];
 
-	$request_address = "n";
+	$request_address = 's';
 
 	# System Variables
 	$returnurl = $params['returnurl'];
@@ -59,13 +70,26 @@ function gerencianet_link($params) {
 
 	$data['tipo'] = "servico";
 	$data['solicitarEndereco'] = $request_address;
+	
+	// If not empty, show aditional fields
+	if(!empty($params['messageCheckout'])) { $data['descricao'] = $params['messageCheckout']; }
+	
 	$data['retorno'] = array('identificador' => $invoiceid,
 							 'url' => $returnurl,
 							 'urlNotificacao' => $params['systemurl']."/modules/gateways/callback/gerencianet.php",
 							 );
 	$data['cliente'] = array('nome' => $fullname,
 							 'email' => $email,
-							 'celular' => $phone
+							 'celular' =>  str_replace(".", "", str_replace("-", "", $phone)),
+							 'cpf' => str_replace(".", "", str_replace("-", "", $cpf)),
+							 'nascimento' => implode("-",array_reverse(explode("/",$birthdayDate))),
+							 'cep' => $cep,
+							 'logradouro' => $logradouro,
+							 'numero' => $numero[0],
+							 //'complemento' => 'bloco 8 casa 103',
+							 'bairro' => $bairro,
+							 'cidade' => $cidade,
+							 'estado' => $estado,
 							 );
 
 	$json = json_encode($data);
