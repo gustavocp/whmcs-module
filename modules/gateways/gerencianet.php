@@ -62,11 +62,23 @@ function gerencianet_link($params) {
 	$result = select_query($table,$fields,$where,$sort,$sortorder,$limits);
 
 	while ($service = mysql_fetch_array($result)) {
+	
+		// bug do desconto (se valor negativo, remove do item principal que é o primeiro)
+		if($service['amount'] < 0){
+			$data['itens'][0]['itemValor'] += (int)($service['amount'] * 100); 
+			continue;
+		}
+			
+	
 		$item = array('itemDescricao' => $service['description'],
 						'itemValor' => (int)($service['amount'] * 100),
 						'itemQuantidade' => 1);
 		$data['itens'][] = $item;
+		$i++;
 	}
+	
+	/* Ignora o desconto e reduz o preço */
+	
 
 	$data['tipo'] = "servico";
 	$data['solicitarEndereco'] = $request_address;
@@ -93,6 +105,9 @@ function gerencianet_link($params) {
 							 );
 
 	$json = json_encode($data);
+	
+	//die(print_r($json));
+	
 
 	$postfields = array('token' => $gatewaytoken, 'dados' => $json);
 
@@ -108,9 +123,10 @@ function gerencianet_link($params) {
 
 	if($decoded_response->status == 2) {
 		$link = $decoded_response->resposta->link;
-		$code .= "<a href='{$link}'><h2>Realizar pagamento</h2></a>";
+		$code .= "<br><br><a href='{$link}'><img src=\"http://www.serversoft.com.br/wp-content/uploads/2015/01/botaoComprarAgora.png\" /></a>";
 	} else {
 		$code = "<h2>Ocorreu um erro ao gerar o pagamento. Por favor, entre em contato com o lojista.</h2>";
+		//die(print_r($decoded_response)); // (DEBUG)
 	}
 
 	return $code;
